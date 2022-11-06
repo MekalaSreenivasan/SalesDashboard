@@ -1,0 +1,23 @@
+<div class="container">
+    <h2>Filter</h2>
+    <div class="filter">
+        <label>Product</label>
+        <select class="form-control"
+                id="product-filter"
+                [(ngModel)]="selectedProductOption">
+            <option *ngFor="let product of productsOptionsForDropDown" [ngValue]="product">
+                {{product.name}}
+            </option>
+        </select>
+    </div>
+    <div class="filter">
+        <label>Timeline</label>
+        <select class="form-control"
+                id="timeline-filter"
+                [(ngModel)]="selectedTimelineOption">
+            <option *ngFor="let timeline of timeLineOptionsForDropDown" [ngValue]="timeline">
+                {{timeline.name}}
+            </option>
+        </select>
+    </div>    
+</div>

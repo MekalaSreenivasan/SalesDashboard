@@ -1,0 +1,27 @@
+.container {
+    top: 10%;
+    position: relative;
+
+    h2 {
+        font-weight: 800;
+        padding-left: 10px;
+    }
+}
+
+.filter {
+    margin: 10px 10px 20px;
+    label {
+        display: block;
+        font-size: 14px;
+        padding-bottom: 3px;
+    }
+
+    .form-control {
+        width: 230px;
+        height: 30px;
+        border: 1px solid #E7E5ED;
+        border-radius: 3px;
+        outline: none;
+        font-family: 'Courier New', monospace;
+    }
+}

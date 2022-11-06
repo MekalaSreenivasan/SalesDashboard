@@ -1,0 +1,33 @@
+<div class="home-page">
+    <div class="side-bar">
+        <app-side-panel
+            [productsOptionsForDropDown]="productNames"
+            [timeLineOptionsForDropDown]="yearsToMap">
+        </app-side-panel>
+    </div>
+    <h1>Sales</h1>
+    <div class="main-content">
+        <!--Graph cards-->
+        <div class="card-container" id="container-one">
+            <h3>Revenue</h3>
+            <div class="flex">
+                <div class="flex-item">
+                    <div style="display: block;">
+                    <canvas baseChart id="line_chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-container" id="container-two">
+            <h3>Price Range</h3>
+            <div class="container">
+                <div>
+                  <div style="display: block">
+                    <canvas baseChart id="bar_chart">
+                    </canvas>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
