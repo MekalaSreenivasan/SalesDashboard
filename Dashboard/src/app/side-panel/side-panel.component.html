@@ -1,23 +1,26 @@
-<div class="container">
-    <h2>Filter</h2>
-    <div class="filter">
+  <div class="container">
+      <h2>Filter</h2>
+      <div class="filter">
         <label>Product</label>
-        <select class="form-control"
+        <div *ngFor="let product of productsOptionsForSelection; let i = index">
+          <input type="checkbox" [(ngModel)]="product.selected"
+           (change)="getSelectedProduct(product)" [disabled]="product.disabled">
+          <span>{{product.name}}</span>
+        </div>       
+        <!--select class="form-control"
                 id="product-filter"
                 [(ngModel)]="selectedProductOption">
-            <option *ngFor="let product of productsOptionsForDropDown" [ngValue]="product">
+            <option *ngFor="let product of productsOptionsForSelection" [ngValue]="product">
                 {{product.name}}
             </option>
-        </select>
-    </div>
-    <div class="filter">
-        <label>Timeline</label>
-        <select class="form-control"
-                id="timeline-filter"
-                [(ngModel)]="selectedTimelineOption">
-            <option *ngFor="let timeline of timeLineOptionsForDropDown" [ngValue]="timeline">
-                {{timeline.name}}
-            </option>
-        </select>
-    </div>    
+        </select-->
+      </div>
+      <div class="filter">
+        <label>Regions</label>        
+        <div *ngFor="let region of regionOptionsForSelection; let i = index">
+          <input type="checkbox" [(ngModel)]="region.selected"
+           (change)="getSelectedProduct(region)" [disabled]="region.disabled">
+          <span>{{region.name}}</span>
+        </div>
+      </div>
 </div>

@@ -44,8 +44,6 @@ export class DashboardHomeComponent implements OnInit {
     }
   };
 
-  public lineChartType: ChartType = 'line';
-
   public barChartOptions: any = {
     responsive: true,
     // We use these empty structures as placeholders for dynamic theming.
@@ -65,7 +63,6 @@ export class DashboardHomeComponent implements OnInit {
       }
     }
   };
-  public barChartType: ChartType = 'bar';
   public barChartPlugins = [
     DataLabelsPlugin
   ];
@@ -81,6 +78,8 @@ export class DashboardHomeComponent implements OnInit {
 
   public productNames: any = [];
   public yearsToMap: any = [];
+  public regions: any = [];
+  public quater: any = [];
   public revenuAndProfitOfProducts: any = [];
   public chartData: any = [];
   public lineChartConfig: any = {};
@@ -90,8 +89,11 @@ export class DashboardHomeComponent implements OnInit {
     let lineChart: HTMLCanvasElement = document.getElementById('line_chart') as HTMLCanvasElement;
     let ctx = <CanvasRenderingContext2D> lineChart.getContext("2d");
     let barChart: HTMLCanvasElement = document.getElementById('bar_chart') as HTMLCanvasElement;  
-    this.productNames = this.utils.filterProductNames(this.productData, 'PRODUCTLINE');
+    this.productNames = this.utils.generateCheckboxOptions(this.productData, 'PRODUCTLINE');
     this.yearsToMap = this.utils.filterYears(this.productData, 'YEAR_ID');
+    this.regions = this.utils.generateCheckboxOptions(this.productData, 'TERRITORY');
+    this.quater = this.utils.getQuater();
+    console.log('Regions: ' + JSON.stringify(this.regions));
     this.calculateRevenue();
     this.configureChartDataByProductFilter();
     this.lineChartData.datasets = this.chartData.datasets;
@@ -119,10 +121,10 @@ export class DashboardHomeComponent implements OnInit {
       let productExpense: number = 0;
       let yearWiseSale: any = [];
       if (object.name !== 'All') {
+        let productList: any = this.utils.getIndividualProductDetail(this.productData, 'PRODUCTLINE', object.name);
         //Calculating year wise revenue
         _.forEach(this.yearsToMap, (year) => {
           if (year.name !== 'All') {
-            let productList: any = this.utils.getIndividualProductDetail(this.productData, 'PRODUCTLINE', object.name);
             let revenue: any = this.utils.calculateRevenuePerYear(productList, year.id, keys);
             productExpense += revenue.expense;
             productProfit += revenue.profit;
@@ -137,6 +139,7 @@ export class DashboardHomeComponent implements OnInit {
         })
         this.revenuAndProfitOfProducts.push({
           name: object.name,
+          id: object.id,
           profit: parseInt(productProfit.toFixed(0)),
           expense: parseInt(productExpense.toFixed(0)),
           year_wise_data: yearWiseSale
@@ -145,33 +148,17 @@ export class DashboardHomeComponent implements OnInit {
     })
   }
 
-  configureChartDataByProductFilter(): void {
-    let labels: any = _.map(this.productNames, (product) => {return product.name})
+  configureChartDataByProductFilter(productsList?: any): void {
+    let labels: any = _.map(this.productNames, (product) => {
+      if (productsList === undefined || productsList.includes(product.id)){
+        return product.name;
+      }
+    })
     labels.shift();
     this.chartData = {
       datasets: [],
       labels: labels
     };
-    /*_.forEach(this.revenuAndProfitOfProducts, (product) => {
-      let randomColor: string = this.utils.getRandomRGB();
-      let idx: number = randomColor.lastIndexOf(')');
-      let set: any = {
-        data: [],
-        label: product.name,
-        backgroundColor: 'rgba(255,255,255,0)',
-        borderColor: `${randomColor.substring(0, idx)}, 1)}`,
-        pointBackgroundColor: `${randomColor.substring(0, idx)}, 1)}`,
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: `${randomColor.substring(0, idx)}, 0.8)}`,
-        fill: 'origin'       
-      };
-      _.map(product.year_wise_data, (item) => {
-        let key = Object.keys(item)[0];
-        set.data.push(item[key].profit)
-      });
-      this.chartData.datasets.push(set);
-    });*/
     _.forEach(this.yearsToMap, (year) => {
       if (year.id !== 'all') {
         let randomColor: string = this.utils.getRandomRGB();
@@ -188,39 +175,49 @@ export class DashboardHomeComponent implements OnInit {
           fill: 'origin'       
         };
         _.forEach(this.revenuAndProfitOfProducts, (product) => {
-          let obj = _.find(product.year_wise_data, (item) => item.year === year.id);
-          if (obj !== undefined) {
-            set.data.push(obj.profit);
+          if (productsList === undefined || productsList.includes(product.id)) {
+            let obj = _.find(product.year_wise_data, (item) => item.year === year.id);
+            if (obj !== undefined) {
+              set.data.push(obj.profit);
+            }
           }
         });
         this.chartData.datasets.push(set);     
       }
     })
-    this.configureQuantityBarChartYearly();
-    console.log('Data: ' + JSON.stringify(this.chartData));  
+    this.configureQuantityBarChartYearly(productsList);
   }
 
   //Provide Option to show it Montly
-  configureQuantityBarChartYearly(): void {
+  configureQuantityBarChartYearly(productList?: any): void {
     let dataSet: any = [];
     let labels: any = [];
     _.forEach(this.revenuAndProfitOfProducts, (product) => {
-      let objData: any = {
-        data: [],
-        label: product.name
-      };
-      _.forEach(product.year_wise_data, (yearData) => {
-        objData.data.push(yearData.quantity_per_year)
-        if (!labels.includes(yearData.year)) {
-          labels.push(yearData.year)
-        }
-      })
-      dataSet.push(objData);
+      if (productList === undefined || productList.includes(product.id)) {
+        let objData: any = {
+          data: [],
+          label: product.name
+        };
+        _.forEach(product.year_wise_data, (yearData) => {
+          objData.data.push(yearData.quantity_per_year)
+          if (!labels.includes(yearData.year)) {
+            labels.push(yearData.year)
+          }
+        })
+        dataSet.push(objData);
+      }
     })
     this.barChartData.datasets = dataSet;
     this.barChartData.labels = labels;
   }
 
+  onProductSelected(data: any) {
+    this.configureChartDataByProductFilter(data); 
+    this.lineChartData.datasets = this.chartData.datasets;
+    this.lineChartData.labels = this.chartData.labels;
+    this.lineChartConfig.update();
+    this.barChartConfig.update();       
+  }
 
   // events
   public chartClicked({ event, active }: { event?: ChartEvent, active?: {}[] }): void {

@@ -1,8 +1,9 @@
 <div class="home-page">
     <div class="side-bar">
         <app-side-panel
-            [productsOptionsForDropDown]="productNames"
-            [timeLineOptionsForDropDown]="yearsToMap">
+            [productsOptionsForSelection]="productNames"
+            [regionOptionsForSelection]="regions"
+            (selectedProducts)="onProductSelected($event)">
         </app-side-panel>
     </div>
     <h1>Sales</h1>
