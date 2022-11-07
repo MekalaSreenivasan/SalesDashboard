@@ -5,6 +5,7 @@ import { Chart, ChartConfiguration, ChartEvent, ChartType, ChartData } from 'cha
 import { BaseChartDirective } from 'ng2-charts';
 import {default as Annotation} from 'chartjs-plugin-annotation';
 import DataLabelsPlugin from 'chartjs-plugin-datalabels';
+import DatalabelsPlugin from 'chartjs-plugin-datalabels'
 
 @Component({
   selector: 'app-dashboard-home',
@@ -61,13 +62,47 @@ export class DashboardHomeComponent implements OnInit {
         anchor: 'end',
         align: 'end'
       }
-    }
+    },
   };
+
+  public pieChartOptions: any = {
+    responsive: true,
+    plugins: DatalabelsPlugin
+  };
+
+  public doughnutChartOptions: any = {
+    responsive: true,
+    legend: {
+      display: true,
+    },
+    tooltips: {
+      enabled: true,
+    },
+    layout: {
+      padding: {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+      },
+    }    
+  }
+
   public barChartPlugins = [
     DataLabelsPlugin
   ];
 
   public barChartData: ChartData<'bar'> = {
+    labels: [],
+    datasets: []
+  };  
+
+  public pieChartData: ChartData<'pie', number[], string | string[]> = {
+    labels: [],
+    datasets: []
+  }
+
+  public doughnutChartData: ChartData<'doughnut'> = {
     labels: [],
     datasets: []
   };  
@@ -79,23 +114,28 @@ export class DashboardHomeComponent implements OnInit {
   public productNames: any = [];
   public yearsToMap: any = [];
   public regions: any = [];
-  public quater: any = [];
+  public quaters: any = [];
   public revenuAndProfitOfProducts: any = [];
   public chartData: any = [];
   public lineChartConfig: any = {};
   public barChartConfig: any = {};
+  public pieChartConfig: any = {};
+  public doughnutChartConfig: any = {};
 
   ngOnInit(): void {
     let lineChart: HTMLCanvasElement = document.getElementById('line_chart') as HTMLCanvasElement;
     let ctx = <CanvasRenderingContext2D> lineChart.getContext("2d");
-    let barChart: HTMLCanvasElement = document.getElementById('bar_chart') as HTMLCanvasElement;  
+    let barChart: HTMLCanvasElement = document.getElementById('bar_chart') as HTMLCanvasElement;
+    let pieChart: HTMLCanvasElement = document.getElementById('pie_chart') as HTMLCanvasElement;
+    let doughChart: HTMLCanvasElement = document.getElementById('dough_chart') as HTMLCanvasElement;
     this.productNames = this.utils.generateCheckboxOptions(this.productData, 'PRODUCTLINE');
     this.yearsToMap = this.utils.filterYears(this.productData, 'YEAR_ID');
     this.regions = this.utils.generateCheckboxOptions(this.productData, 'TERRITORY');
-    this.quater = this.utils.getQuater();
-    console.log('Regions: ' + JSON.stringify(this.regions));
+    this.quaters = this.utils.getQuater();
     this.calculateRevenue();
     this.configureChartDataByProductFilter();
+    this.configurePieChart();
+    this.configureDoughnutChart();
     this.lineChartData.datasets = this.chartData.datasets;
     this.lineChartData.labels = this.chartData.labels;
     this.lineChartConfig = new Chart(ctx, {
@@ -107,7 +147,17 @@ export class DashboardHomeComponent implements OnInit {
       type: 'bar',
       data: this.barChartData,
       options: this.barChartOptions
-    })    
+    })
+    this.pieChartConfig = new Chart(<CanvasRenderingContext2D>pieChart.getContext("2d"), {
+      type: 'pie',
+      data: this.pieChartData,
+      options: this.pieChartOptions,
+    });
+    this.doughnutChartConfig = new Chart(<CanvasRenderingContext2D>doughChart.getContext("2d"), {
+      type: 'doughnut',
+      data: this.doughnutChartData,
+      options: this.doughnutChartOptions
+    });
   }
 
   calculateRevenue(): void {
@@ -120,6 +170,8 @@ export class DashboardHomeComponent implements OnInit {
       let productProfit: number = 0;
       let productExpense: number = 0;
       let yearWiseSale: any = [];
+      let regionWiseSale: any = [];
+      let quaterWiseSale: any = [];
       if (object.name !== 'All') {
         let productList: any = this.utils.getIndividualProductDetail(this.productData, 'PRODUCTLINE', object.name);
         //Calculating year wise revenue
@@ -137,12 +189,41 @@ export class DashboardHomeComponent implements OnInit {
             });
           }
         })
+        //Calculating revenue by regions wise (use pie chart)
+        //Calculating revenu by quater (use doughnut chart)
+        //For both provide filter option to render year wise (intially show all)
+        _.forEach(this.regions, (region) => {
+          if (region.name !== 'All') {
+            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, region, keys, this.yearsToMap, 'TERRITORY');
+            regionWiseSale.push({
+              region: region.id,
+              profit: parseInt(data.profit.toFixed(0)),
+              expense: parseInt(data.expense.toFixed(0)),
+              quantity_per_region: data.quantity_per_region,
+              year_wise_data: data.year_wise_data 
+            })
+          }
+        });
+        _.forEach(this.quaters, (quater) =>{
+          if (quater.name !== 'All') {
+            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, quater, keys, this.yearsToMap, 'QTR_ID');
+            quaterWiseSale.push({
+              quater: quater.id,
+              profit: parseInt(data.profit.toFixed(0)),
+              expense: parseInt(data.expense.toFixed(0)),
+              quantity_per_quater: data.quantity_per_region,
+              year_wise_data: data.year_wise_data               
+            });
+          }
+        });
         this.revenuAndProfitOfProducts.push({
           name: object.name,
           id: object.id,
           profit: parseInt(productProfit.toFixed(0)),
           expense: parseInt(productExpense.toFixed(0)),
-          year_wise_data: yearWiseSale
+          year_wise_data: yearWiseSale,
+          region_wise_data: regionWiseSale,
+          quater_wise_data: quaterWiseSale
         });
       }
     })
@@ -211,12 +292,76 @@ export class DashboardHomeComponent implements OnInit {
     this.barChartData.labels = labels;
   }
 
-  onProductSelected(data: any) {
+  configurePieChart(regionList?: any): void {
+    let labels: any = _.map(this.regions, (region) => {
+      if (regionList === undefined || regionList.includes(region.id)){
+        return region.name;
+      }
+    }).filter((e) => e !== undefined);
+    if (labels.includes('All')) {
+      labels.shift();
+    }
+    let dataSet: any = [];
+   
+    _.forEach(labels, (label) => {
+      let total: number = 0;
+      let lbl: string = label.toLowerCase();
+      _.forEach(this.revenuAndProfitOfProducts, (product) => {
+        let data: any = _.filter(product.region_wise_data, (obj) => obj.region === lbl);
+        total += data[0].profit;
+      });
+      dataSet.push(total);
+    });
+    this.pieChartData.labels = labels;
+    this.pieChartData.datasets.push({data: dataSet});
+  }
+
+  configureDoughnutChart(quaterList?: any): void {
+    let ids: any = [];
+    let labels: any = _.map(this.quaters, (quater) => {
+      if (quaterList === undefined || quaterList.includes(quater.id)){
+        if (quater.id !== 5) {
+          ids.push(quater.id);
+        }
+        return quater.name;
+      }
+    }).filter((e) => e !== undefined);
+    if (labels.includes('All')) {
+      labels.shift();
+    }
+    let dataSet: any = [];
+   
+    _.forEach(ids, (id) => {
+      let total: number = 0;
+      _.forEach(this.revenuAndProfitOfProducts, (product) => {
+        let data: any = _.filter(product.quater_wise_data, (obj) => obj.quater === id);
+        total += data[0].profit;
+      });
+      dataSet.push(total);
+    });
+    this.doughnutChartData.labels = labels;
+    this.doughnutChartData.datasets = [{ data: dataSet }];
+    console.log(this.doughnutChartData);
+  }
+
+  onProductSelected(data: any): void {
     this.configureChartDataByProductFilter(data); 
     this.lineChartData.datasets = this.chartData.datasets;
     this.lineChartData.labels = this.chartData.labels;
     this.lineChartConfig.update();
     this.barChartConfig.update();       
+  }
+
+  onRegionSelected(data: any): void {
+    this.pieChartData.datasets = [];
+    this.configurePieChart(data);
+    this.pieChartConfig.update();
+  }
+
+  onQuaterSelected(data: any): void {
+    this.doughnutChartData.datasets = [];
+    this.configureDoughnutChart(data);
+    this.doughnutChartConfig.update();
   }
 
   // events

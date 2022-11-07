@@ -1,34 +1,59 @@
 <div class="home-page">
-    <div class="side-bar">
-        <app-side-panel
-            [productsOptionsForSelection]="productNames"
-            [regionOptionsForSelection]="regions"
-            (selectedProducts)="onProductSelected($event)">
-        </app-side-panel>
-    </div>
-    <h1>Sales</h1>
-    <div class="main-content">
-        <!--Graph cards-->
-        <div class="card-container" id="container-one">
-            <h3>Revenue</h3>
-            <div class="flex">
-                <div class="flex-item">
-                    <div style="display: block;">
-                    <canvas baseChart id="line_chart"></canvas>
-                    </div>
-                </div>
-            </div>
+  <div class="side-bar">
+    <app-side-panel
+        [productsOptionsForSelection]="productNames"
+        [regionOptionsForSelection]="regions"
+        [quaterOptionsForSelection]="quaters"
+        (selectedProducts)="onProductSelected($event)"
+        (selectedRegions)="onRegionSelected($event)"
+        (selectedQuaters)="onQuaterSelected($event)">
+    </app-side-panel>
+  </div>
+  <h1>Sales</h1>
+  <div class="main-content">
+    <!--Graph cards-->
+    <div class="card-container" id="container-one">
+      <h3>Revenue</h3>
+      <div class="flex">
+        <div class="flex-item">
+          <div style="display: block;">
+          <canvas baseChart id="line_chart"></canvas>
+          </div>
         </div>
-        <div class="card-container" id="container-two">
-            <h3>Price Range</h3>
-            <div class="container">
-                <div>
-                  <div style="display: block">
-                    <canvas baseChart id="bar_chart">
-                    </canvas>
-                  </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="card-container" id="container-two">
+      <h3>Quantity Sold Per Year</h3>
+      <div class="container">
+        <div>
+          <div style="display: block">
+            <canvas baseChart id="bar_chart">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-container pie-chart-container" id="container-three">
+      <h3>Revenue based on Regions</h3>
+      <div class="container" style="height:300px;width:280px;margin-left:50px;">
+        <div>
+          <div style="display: block">
+            <canvas baseChart id="pie_chart" height="200px" width="200px">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-container pie-chart-container" id="container-four">
+      <h3>Revenue based on Quaters</h3>
+      <div class="container" style="height:300px;width:280px;margin-left:50px;">
+        <div>
+          <div style="display: block">
+            <canvas baseChart id="dough_chart" height="200px" width="200px">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>            
+  </div>
 </div>

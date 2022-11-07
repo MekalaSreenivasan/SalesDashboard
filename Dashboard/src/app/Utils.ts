@@ -79,19 +79,59 @@ calculateRevenuePerYear(list: any[], year: number, keys: any): any {
   }
 }
 
-  calculateRevenueByRegion(): any {
-
+  calculateRevenueByRegionOrQuater(list: any[], region: any, keys: any, years: any, keyToCheck: string): any {
+    let productProfitForRegion: number = 0;
+    let productExpenseForRegion: number = 0;
+    let quantityForRegion: number = 0;
+    let yearWiseRegionData: any = [];
+    let valueToCheck = keyToCheck === 'TERRITORY' ? region.name : region.id;
+    let productListForRegion = this.getIndividualProductDetail(list, keyToCheck, valueToCheck);
+    _.forEach(years, (year) => {
+      if (year.name !== 'All') {
+        let dataPerYear: any = this.getIndividualProductDetail(productListForRegion, 'YEAR_ID', year.id);
+        let yearWiseProfit: number = 0;
+        let yearWiseExpense: number = 0;
+        let quantityPerYear: number = 0;
+        _.forEach(dataPerYear, (product) => {
+          let salePrice: number = product[keys.sale_price];
+          let quantity: number = product[keys.quantity];
+          let actualPrice: number = product[keys.price_each];
+          let expense: number = quantity * actualPrice;
+          let profit: number = quantity * salePrice;
+          quantityPerYear += quantity;
+          quantityForRegion += quantity;
+          productProfitForRegion += profit;
+          productExpenseForRegion += expense;
+          yearWiseProfit += profit;
+          yearWiseExpense += expense;          
+        });
+        yearWiseRegionData.push({
+          id: year.id,
+          quantity: quantityPerYear,
+          profit: parseInt(yearWiseProfit.toFixed(0)),
+          expense: parseInt(yearWiseExpense.toFixed(0))
+        });     
+      }
+    })
+    return {
+      profit: productProfitForRegion,
+      expense: productExpenseForRegion,
+      quantity_per_region: quantityForRegion,
+      year_wise_data: yearWiseRegionData
+    }
   }
 
   getRandomRGB(): string {
-    /*let roundValue = Math.round, rndmValue = Math.random, maxNum = 255;
-    return `rgba(${roundValue(rndmValue()*maxNum)}, ${roundValue(rndmValue()*maxNum)}, ${roundValue(rndmValue()*maxNum)})`;*/
     let color = "hsl(" + Math.random() * 360 + ", 100%, 75%)";
     return color;        
   }
 
   getQuater(): void {
     let object: any = [{
+      id: 5,
+      name: 'All',
+      selected: false
+    }, {
       id: 1,
       name: 'Q1',
       selected: false

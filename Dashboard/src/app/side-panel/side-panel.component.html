@@ -1,26 +1,41 @@
-  <div class="container">
-      <h2>Filter</h2>
-      <div class="filter">
-        <label>Product</label>
-        <div *ngFor="let product of productsOptionsForSelection; let i = index">
-          <input type="checkbox" [(ngModel)]="product.selected"
-           (change)="getSelectedProduct(product)" [disabled]="product.disabled">
-          <span>{{product.name}}</span>
-        </div>       
-        <!--select class="form-control"
-                id="product-filter"
-                [(ngModel)]="selectedProductOption">
-            <option *ngFor="let product of productsOptionsForSelection" [ngValue]="product">
-                {{product.name}}
-            </option>
-        </select-->
+<div class="container">
+  <h2>Filter</h2>
+  <div class="filter">
+    <label (click)="expandList('product')">{{ getLabel('product') }}</label>
+    <div class="list-container" *ngIf="showProductList">
+      <div *ngFor="let product of productsOptionsForSelection; let i = index">
+        <input type="checkbox" [(ngModel)]="product.selected"
+          (change)="getSelectedProduct(product, true)" [disabled]="product.disabled">
+        <span>{{product.name}}</span>
+      </div> 
+    </div>      
+    <!--select class="form-control"
+            id="product-filter"
+            [(ngModel)]="selectedProductOption">
+        <option *ngFor="let product of productsOptionsForSelection" [ngValue]="product">
+            {{product.name}}
+        </option>
+    </select-->
+  </div>
+  <div class="filter">
+    <label (click)="expandList('region')">{{ getLabel('region') }}</label>
+    <div class="list-container" *ngIf="showRegionsList">    
+      <div *ngFor="let region of regionOptionsForSelection; let i = index">
+        <input type="checkbox" [(ngModel)]="region.selected"
+        (change)="getSelectedRegion(region, true)" [disabled]="region.disabled">
+        <span>{{region.name}}</span>
       </div>
-      <div class="filter">
-        <label>Regions</label>        
-        <div *ngFor="let region of regionOptionsForSelection; let i = index">
-          <input type="checkbox" [(ngModel)]="region.selected"
-           (change)="getSelectedProduct(region)" [disabled]="region.disabled">
-          <span>{{region.name}}</span>
-        </div>
+    </div>
+  </div>
+  <div class="filter">
+    <label (click)="expandList('quater')">{{ getLabel('quater') }}</label>
+    <div class="list-container" *ngIf="showQuaterList">    
+      <div *ngFor="let quater of quaterOptionsForSelection; let i = index">
+        <input type="checkbox" [(ngModel)]="quater.selected"
+        (change)="getSelectedQuater(quater, true)" [disabled]="quater.disabled">
+        <span>{{quater.name}}</span>
       </div>
+    </div>
+  </div>  
+  
 </div>
