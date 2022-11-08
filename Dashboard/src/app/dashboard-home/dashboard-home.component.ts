@@ -6,6 +6,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import {default as Annotation} from 'chartjs-plugin-annotation';
 import DataLabelsPlugin from 'chartjs-plugin-datalabels';
 import DatalabelsPlugin from 'chartjs-plugin-datalabels'
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard-home',
@@ -109,7 +110,16 @@ export class DashboardHomeComponent implements OnInit {
 
   constructor(
     private utils: Utils
-  ) { }
+  ) {
+    this.optionFormOne = new FormGroup({
+      options: new FormControl(null)
+    });
+    this.optionFormOne.controls['options'].setValue(this.default, {onlySelf: true});
+    this.optionFormTwo = new FormGroup({
+      options: new FormControl(null)
+    });
+    this.optionFormTwo.controls['options'].setValue(this.default, {onlySelf: true});        
+   }
 
   public productNames: any = [];
   public yearsToMap: any = [];
@@ -122,6 +132,15 @@ export class DashboardHomeComponent implements OnInit {
   public pieChartConfig: any = {};
   public doughnutChartConfig: any = {};
 
+  //Dropdown options
+  selectionOptions: string[] = ['Revenue', 'Quantity'];
+  default: string = 'Revenue';
+
+  optionFormOne: FormGroup;
+  optionFormTwo: FormGroup;
+  selectedOptionForPie: string = '';
+  selectedOptionForDoughnut: string = ''; 
+
   ngOnInit(): void {
     let lineChart: HTMLCanvasElement = document.getElementById('line_chart') as HTMLCanvasElement;
     let ctx = <CanvasRenderingContext2D> lineChart.getContext("2d");
@@ -132,10 +151,12 @@ export class DashboardHomeComponent implements OnInit {
     this.yearsToMap = this.utils.filterYears(this.productData, 'YEAR_ID');
     this.regions = this.utils.generateCheckboxOptions(this.productData, 'TERRITORY');
     this.quaters = this.utils.getQuater();
+    this.selectedOptionForPie = 'Revenue';
+    this.selectedOptionForDoughnut = 'Revenue';
     this.calculateRevenue();
     this.configureChartDataByProductFilter();
-    this.configurePieChart();
-    this.configureDoughnutChart();
+    this.configurePieChart(this.selectedOptionForPie);
+    this.configureDoughnutChart(this.selectedOptionForDoughnut);
     this.lineChartData.datasets = this.chartData.datasets;
     this.lineChartData.labels = this.chartData.labels;
     this.lineChartConfig = new Chart(ctx, {
@@ -292,7 +313,7 @@ export class DashboardHomeComponent implements OnInit {
     this.barChartData.labels = labels;
   }
 
-  configurePieChart(regionList?: any): void {
+  configurePieChart(dataBasedOn: string, regionList?: any): void {
     let labels: any = _.map(this.regions, (region) => {
       if (regionList === undefined || regionList.includes(region.id)){
         return region.name;
@@ -308,7 +329,7 @@ export class DashboardHomeComponent implements OnInit {
       let lbl: string = label.toLowerCase();
       _.forEach(this.revenuAndProfitOfProducts, (product) => {
         let data: any = _.filter(product.region_wise_data, (obj) => obj.region === lbl);
-        total += data[0].profit;
+        total = total + (dataBasedOn === 'Revenue'? data[0].profit : data[0].quantity_per_region);
       });
       dataSet.push(total);
     });
@@ -316,7 +337,7 @@ export class DashboardHomeComponent implements OnInit {
     this.pieChartData.datasets.push({data: dataSet});
   }
 
-  configureDoughnutChart(quaterList?: any): void {
+  configureDoughnutChart(dataBasedOn: string, quaterList?: any): void {
     let ids: any = [];
     let labels: any = _.map(this.quaters, (quater) => {
       if (quaterList === undefined || quaterList.includes(quater.id)){
@@ -335,7 +356,7 @@ export class DashboardHomeComponent implements OnInit {
       let total: number = 0;
       _.forEach(this.revenuAndProfitOfProducts, (product) => {
         let data: any = _.filter(product.quater_wise_data, (obj) => obj.quater === id);
-        total += data[0].profit;
+        total = total + (dataBasedOn === 'Revenue'? data[0].profit : data[0].quantity_per_quater);
       });
       dataSet.push(total);
     });
@@ -354,13 +375,27 @@ export class DashboardHomeComponent implements OnInit {
 
   onRegionSelected(data: any): void {
     this.pieChartData.datasets = [];
-    this.configurePieChart(data);
+    this.configurePieChart(this.selectedOptionForPie, data);
     this.pieChartConfig.update();
   }
 
   onQuaterSelected(data: any): void {
     this.doughnutChartData.datasets = [];
-    this.configureDoughnutChart(data);
+    this.configureDoughnutChart(this.selectedOptionForDoughnut, data);
+    this.doughnutChartConfig.update();
+  }
+
+  changeView(event: any): void {
+    this.selectedOptionForPie = this.optionFormOne.get('options')?.value;
+    this.pieChartData.datasets = [];
+    this.configurePieChart(this.selectedOptionForPie);
+    this.pieChartConfig.update();
+  }
+
+  changeViewForDoughnut(event: any): void {
+    this.selectedOptionForDoughnut = this.optionFormTwo.get('options')?.value;
+    this.doughnutChartData.datasets = [];
+    this.configureDoughnutChart(this.selectedOptionForDoughnut);
     this.doughnutChartConfig.update();
   }
 

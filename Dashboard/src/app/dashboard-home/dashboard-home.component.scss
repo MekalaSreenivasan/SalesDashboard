@@ -44,5 +44,22 @@ h1 {
     .pie-chart-container {
         height: 310px;
         margin-top: 10px;
+
+        .btn-container {
+            display: inline-flex;
+            h3 {
+                width: 300px;
+            }
+            .drop-down-container {
+                margin-top: 15px;
+                align-self: flex-end;
+                margin-left: 5px;
+                font-family: 'Courier New', monospace;
+                select, option {
+                    font-family: 'Courier New', monospace;
+                    outline: none;
+                }              
+            }
+        }
     }
 }

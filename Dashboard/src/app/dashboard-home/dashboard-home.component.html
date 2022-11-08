@@ -34,7 +34,15 @@
       </div>
     </div>
     <div class="card-container pie-chart-container" id="container-three">
-      <h3>Revenue based on Regions</h3>
+      <div class="btn-container">
+        <h3>{{selectedOptionForPie === 'Revenue' ? 'Revenue' : 'Quantity Sold'}} based on Regions</h3>
+        <!--button>Show Quantity</button-->
+        <form [formGroup]="optionFormOne" class="drop-down-container">
+          <select id="options" formControlName="options" (change)="changeView($event)">
+              <option *ngFor="let c of selectionOptions" [ngValue]="c">{{ c }}</option>
+          </select>
+        </form>        
+      </div>
       <div class="container" style="height:300px;width:280px;margin-left:50px;">
         <div>
           <div style="display: block">
@@ -45,7 +53,14 @@
       </div>
     </div>
     <div class="card-container pie-chart-container" id="container-four">
-      <h3>Revenue based on Quaters</h3>
+      <div class="btn-container">
+        <h3>{{selectedOptionForDoughnut === 'Revenue' ? 'Revenue' : 'Quantity Sold'}} based on Quaters</h3>
+        <form [formGroup]="optionFormTwo" class="drop-down-container">
+          <select id="options" formControlName="options" (change)="changeViewForDoughnut($event)">
+              <option *ngFor="let c of selectionOptions" [ngValue]="c">{{ c }}</option>
+          </select>
+        </form> 
+      </div>
       <div class="container" style="height:300px;width:280px;margin-left:50px;">
         <div>
           <div style="display: block">
