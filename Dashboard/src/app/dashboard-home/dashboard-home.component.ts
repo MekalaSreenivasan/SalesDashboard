@@ -131,6 +131,14 @@ export class DashboardHomeComponent implements OnInit {
   public barChartConfig: any = {};
   public pieChartConfig: any = {};
   public doughnutChartConfig: any = {};
+  //Product keys - Can be used for configurable params
+  public product_name_key = 'PRODUCTLINE';
+  public year_id_key = 'YEAR_ID';
+  public region_key = 'TERRITORY';
+  public sale_price_key = 'MSRP';
+  public quantity_sold_key = 'QUANTITYORDERED';
+  public mrp_key = 'PRICEEACH';
+  public quater_key = 'QTR_ID';
 
   //Dropdown options
   selectionOptions: string[] = ['Revenue', 'Quantity'];
@@ -147,9 +155,9 @@ export class DashboardHomeComponent implements OnInit {
     let barChart: HTMLCanvasElement = document.getElementById('bar_chart') as HTMLCanvasElement;
     let pieChart: HTMLCanvasElement = document.getElementById('pie_chart') as HTMLCanvasElement;
     let doughChart: HTMLCanvasElement = document.getElementById('dough_chart') as HTMLCanvasElement;
-    this.productNames = this.utils.generateCheckboxOptions(this.productData, 'PRODUCTLINE');
-    this.yearsToMap = this.utils.filterYears(this.productData, 'YEAR_ID');
-    this.regions = this.utils.generateCheckboxOptions(this.productData, 'TERRITORY');
+    this.productNames = this.utils.generateCheckboxOptions(this.productData, this.product_name_key);
+    this.yearsToMap = this.utils.filterYears(this.productData, this.year_id_key);
+    this.regions = this.utils.generateCheckboxOptions(this.productData, this.region_key);
     this.quaters = this.utils.getQuater();
     this.selectedOptionForPie = 'Revenue';
     this.selectedOptionForDoughnut = 'Revenue';
@@ -183,9 +191,9 @@ export class DashboardHomeComponent implements OnInit {
 
   calculateRevenue(): void {
     let keys: any = {
-      sale_price: 'MSRP',
-      quantity: 'QUANTITYORDERED',
-      price_each: 'PRICEEACH'
+      sale_price: this.sale_price_key,
+      quantity: this.quantity_sold_key,
+      price_each: this.mrp_key
     }; 
     _.forEach(this.productNames, (object) => {
       let productProfit: number = 0;
@@ -194,7 +202,7 @@ export class DashboardHomeComponent implements OnInit {
       let regionWiseSale: any = [];
       let quaterWiseSale: any = [];
       if (object.name !== 'All') {
-        let productList: any = this.utils.getIndividualProductDetail(this.productData, 'PRODUCTLINE', object.name);
+        let productList: any = this.utils.getIndividualProductDetail(this.productData, this.product_name_key, object.name);
         //Calculating year wise revenue
         _.forEach(this.yearsToMap, (year) => {
           if (year.name !== 'All') {
@@ -215,7 +223,7 @@ export class DashboardHomeComponent implements OnInit {
         //For both provide filter option to render year wise (intially show all)
         _.forEach(this.regions, (region) => {
           if (region.name !== 'All') {
-            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, region, keys, this.yearsToMap, 'TERRITORY');
+            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, region, keys, this.yearsToMap, this.region_key);
             regionWiseSale.push({
               region: region.id,
               profit: parseInt(data.profit.toFixed(0)),
@@ -227,7 +235,7 @@ export class DashboardHomeComponent implements OnInit {
         });
         _.forEach(this.quaters, (quater) =>{
           if (quater.name !== 'All') {
-            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, quater, keys, this.yearsToMap, 'QTR_ID');
+            let data: any = this.utils.calculateRevenueByRegionOrQuater(productList, quater, keys, this.yearsToMap, this.quater_key);
             quaterWiseSale.push({
               quater: quater.id,
               profit: parseInt(data.profit.toFixed(0)),
@@ -397,23 +405,5 @@ export class DashboardHomeComponent implements OnInit {
     this.doughnutChartData.datasets = [];
     this.configureDoughnutChart(this.selectedOptionForDoughnut);
     this.doughnutChartConfig.update();
-  }
-
-  // events
-  public chartClicked({ event, active }: { event?: ChartEvent, active?: {}[] }): void {
-    console.log(event, active);
-  }
-
-  public chartHovered({ event, active }: { event?: ChartEvent, active?: {}[] }): void {
-    console.log(event, active);
-  }
-
-  // events
-  public chartClick({ event, active }: { event?: ChartEvent, active?: {}[] }): void {
-    console.log(event, active);
-  }
-
-  public chartHover({ event, active }: { event?: ChartEvent, active?: {}[] }): void {
-    console.log(event, active);
   }  
 }
