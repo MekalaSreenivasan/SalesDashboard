@@ -1,5 +1,6 @@
 # SalesDashboard
 This project is about graphical representation of sales data based on few parameters like Profit, Region, Quater etc..,
+
 Added following options for graphical representation for Profit and Quantity sold
   - option to check for each product separately.
   - option to see based on Regions
